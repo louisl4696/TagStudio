@@ -82,6 +82,36 @@ class ThumbGridLayout(QLayout):
         )
 
         self._last_page_update = None
+    
+    def select_next(self):
+        next_index = 0
+        if self._last_selected is not None:
+            next_index = min(self._last_selected+1, len(self._entry_ids)-1)
+        next_id = self._entry_ids[next_index]
+        self.clear_selected()
+        for id in self._selected:
+            if id != next_id:
+                self._set_selected(id, value=False)
+        self._set_selected(next_id)
+        self._selected[next_id] = next_index
+        self._last_selected = next_index
+        return list(self._selected.keys())
+
+    def select_prev(self):
+        next_index = len(self._entry_ids)-1
+        if self._last_selected is not None:
+            next_index = max(self._last_selected-1, 0)
+        next_id = self._entry_ids[next_index]
+        self.clear_selected()
+        for id in self._selected:
+            if id != next_id:
+                self._set_selected(id, value=False)
+        self._set_selected(next_id)
+        self._selected[next_id] = next_index
+        self._last_selected = next_index
+        return list(self._selected.keys())
+
+
 
     def select_all(self):
         self._selected.clear()
