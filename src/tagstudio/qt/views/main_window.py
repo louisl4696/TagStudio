@@ -11,7 +11,7 @@ import structlog
 from PIL import Image, ImageQt
 from PySide6 import QtCore
 from PySide6.QtCore import QMetaObject, QSize, QStringListModel, Qt
-from PySide6.QtGui import QAction, QPixmap
+from PySide6.QtGui import QAction, QPixmap, QKeyEvent
 from PySide6.QtWidgets import (
     QComboBox,
     QCompleter,
@@ -450,6 +450,7 @@ class MainWindow(QMainWindow):
     def __init__(self, driver: "QtDriver", parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self.rm = ResourceManager()
+        self.installEventFilter(self)
 
         # region Type declarations for variables that will be initialized in methods
         # initialized in setup_search_bar
@@ -688,6 +689,28 @@ class MainWindow(QMainWindow):
         self.setStatusBar(self.status_bar)
 
     # endregion
+
+    #keyboard navigation
+
+    def eventFilter(self, watched, event):
+        if isinstance(event, QKeyEvent):
+            key = event.key()
+            # KEY PRESSED
+            if event.type() == event.Type.KeyRelease:
+                logger.info("Key UP", key=key)
+                if key == QtCore.Qt.Key.Key_Right:
+                    selected = self.thumb_layout.select_next()
+                    self.preview_panel.set_selection(selected, update_preview=True)
+                    return True
+                elif key == QtCore.Qt.Key.Key_Left:
+                    selected = self.thumb_layout.select_prev()
+                    self.preview_panel.set_selection(selected, update_preview=True)
+                    return True
+            # KEY RELEASED
+            else:
+                logger.info("Key DOWN", key=key)
+        return super().eventFilter(watched, event)
+    
 
     def toggle_landing_page(self, enabled: bool):
         if enabled:
