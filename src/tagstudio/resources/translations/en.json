@@ -239,6 +239,8 @@
     "menu.view.decrease_thumbnail_size": "Decrease Thumbnail Size",
     "menu.view.increase_thumbnail_size": "Increase Thumbnail Size",
     "menu.view.library_info": "Library &Information",
+    "menu.view.undo_selection": "Undo Selection",
+    "menu.view.redo_selection": "Redo Selection",
     "menu.view": "&View",
     "menu.window": "Window",
     "namespace.create.description_color": "Tag colors use namespaces as color palette groups. All custom colors must be under a namespace group first.",
