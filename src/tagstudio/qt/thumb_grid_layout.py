@@ -2,6 +2,7 @@ import math
 import time
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, override
+from collections import deque
 
 from PySide6.QtCore import QPoint, QRect, QSize
 from PySide6.QtGui import QPixmap
@@ -17,6 +18,20 @@ from tagstudio.qt.previews.renderer import ThumbRenderer
 if TYPE_CHECKING:
     from tagstudio.qt.ts_qt import QtDriver
 
+MAX_HISTORY = 30
+
+def log_selection(method):
+    #decorator to keep a history of selection states
+    def wrapper(self, *args, **kwargs):
+        # Only log if the current state differs from the last
+        if self._selected and (not self._selection_history or self._selection_history[-1] != self._selected):
+            # copy to avoid mutation issues
+            self._selection_history.append(dict(self._selected))
+            if self._undo_selection_history:
+                # clear undo history
+                self._undo_selection_history.clear()
+        return method(self, *args, **kwargs)
+    return wrapper
 
 class ThumbGridLayout(QLayout):
     def __init__(self, driver: "QtDriver", scroll_area: QScrollArea) -> None:
@@ -28,6 +43,8 @@ class ThumbGridLayout(QLayout):
         self._items: list[QLayoutItem] = []
         # Entry.id -> _entry_ids[index]
         self._selected: dict[int, int] = {}
+        self._selection_history = deque(maxlen=MAX_HISTORY)
+        self._undo_selection_history = deque(maxlen=MAX_HISTORY)
         # _entry_ids[index]
         self._last_selected: int | None = None
 
@@ -52,6 +69,8 @@ class ThumbGridLayout(QLayout):
 
         self._selected.clear()
         self._last_selected = None
+        self._selection_history.clear()
+        self._undo_selection_history.clear()
 
         self._entry_ids = entry_ids
         self._entries.clear()
@@ -82,7 +101,33 @@ class ThumbGridLayout(QLayout):
         )
 
         self._last_page_update = None
+
+    def undo_selection(self):
+        if self._selection_history:
+            self._undo_selection_history.append(dict(self._selected))
+            selected = self._selection_history.pop()
+            for id in self._selected:
+                if id not in selected:
+                    self._set_selected(id, value=False)
+            for id in selected:
+                self._set_selected(id)
+                self._last_selected = selected[id]
+            self._selected = selected
     
+
+    def redo_selection(self):
+        if self._undo_selection_history:
+            self._selection_history.append(dict(self._selected))
+            selected = self._undo_selection_history.pop()
+            for id in self._selected:
+                if id not in selected:
+                    self._set_selected(id, value=False)
+            for id in selected:
+                self._set_selected(id)
+                self._last_selected = selected[id]
+            self._selected = selected
+    
+    @log_selection
     def select_next(self):
         next_index = 0
         if self._last_selected is not None:
@@ -97,6 +142,7 @@ class ThumbGridLayout(QLayout):
         self._last_selected = next_index
         return list(self._selected.keys())
 
+    @log_selection
     def select_prev(self):
         next_index = len(self._entry_ids)-1
         if self._last_selected is not None:
@@ -111,8 +157,7 @@ class ThumbGridLayout(QLayout):
         self._last_selected = next_index
         return list(self._selected.keys())
 
-
-
+    @log_selection
     def select_all(self):
         self._selected.clear()
         for index, id in enumerate(self._entry_ids):
@@ -122,6 +167,7 @@ class ThumbGridLayout(QLayout):
         for entry_id in self._entry_items:
             self._set_selected(entry_id)
 
+    @log_selection
     def select_inverse(self):
         selected = {}
         for index, id in enumerate(self._entry_ids):
@@ -137,6 +183,7 @@ class ThumbGridLayout(QLayout):
 
         self._selected = selected
 
+    @log_selection
     def select_entry(self, entry_id: int):
         if entry_id in self._selected:
             index = self._selected.pop(entry_id)
@@ -153,6 +200,7 @@ class ThumbGridLayout(QLayout):
             self._last_selected = index
             self._set_selected(entry_id)
 
+    @log_selection
     def select_to_entry(self, entry_id: int):
         index = self._entry_ids.index(entry_id)
         if len(self._selected) == 0:
@@ -174,6 +222,7 @@ class ThumbGridLayout(QLayout):
             self._selected[entry_id] = i
             self._set_selected(entry_id)
 
+    @log_selection
     def clear_selected(self):
         for entry_id in self._entry_items:
             self._set_selected(entry_id, value=False)

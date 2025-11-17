@@ -67,6 +67,8 @@ class MainMenuBar(QMenuBar):
     new_tag_action: QAction
     select_all_action: QAction
     select_inverse_action: QAction
+    undo_selection_action: QAction
+    redo_selection_action: QAction
     clear_select_action: QAction
     copy_fields_action: QAction
     paste_fields_action: QAction
@@ -214,6 +216,29 @@ class MainMenuBar(QMenuBar):
         self.select_inverse_action.setToolTip("Ctrl+Shift+I")
         self.select_inverse_action.setEnabled(False)
         self.edit_menu.addAction(self.select_inverse_action)
+
+        self.undo_selection_action = QAction(
+            Translations["menu.view.undo_selection"], self
+        )
+        self.undo_selection_action.setShortcut(
+            QtCore.QKeyCombination(
+                QtCore.Qt.Key.Key_R,
+            )
+        )
+        self.undo_selection_action.setToolTip("R")
+        self.edit_menu.addAction(self.undo_selection_action)
+
+        self.redo_selection_action = QAction(
+            Translations["menu.view.redo_selection"], self
+        )
+        self.redo_selection_action.setShortcut(
+            QtCore.QKeyCombination(
+                QtCore.Qt.KeyboardModifier(QtCore.Qt.KeyboardModifier.ShiftModifier),
+                QtCore.Qt.Key.Key_R,
+            )
+        )
+        self.redo_selection_action.setToolTip("Shift+R")
+        self.edit_menu.addAction(self.redo_selection_action)
 
         # Clear Selection
         self.clear_select_action = QAction(Translations["select.clear"], self)
