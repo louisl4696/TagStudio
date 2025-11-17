@@ -1489,7 +1489,7 @@ class ThumbRenderer(QObject):
             hashable_str: str = f"{str(filepath)}{mod_time}"
             hash_value = hashlib.shake_128(hashable_str.encode("utf-8")).hexdigest(8)
             file_name = Path(f"{hash_value}{ThumbRenderer.cached_img_ext}")
-            image = fetch_cached_image(file_name)
+            #image = fetch_cached_image(file_name)
 
             if not image and self.driver.settings.generate_thumbs:
                 # Render from file, return result, and try to save a cached version.

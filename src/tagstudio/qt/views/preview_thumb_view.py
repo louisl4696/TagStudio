@@ -26,7 +26,7 @@ if TYPE_CHECKING:
 logger = structlog.get_logger(__name__)
 
 
-THUMB_SIZE_FACTOR = 2
+THUMB_SIZE_FACTOR = 5
 
 
 class PreviewThumbView(QWidget):

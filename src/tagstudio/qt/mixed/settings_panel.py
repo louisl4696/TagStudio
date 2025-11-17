@@ -24,6 +24,7 @@ from tagstudio.core.enums import ShowFilepathOption, TagClickActionOption
 from tagstudio.qt.global_settings import (
     DEFAULT_THUMB_CACHE_SIZE,
     MIN_THUMB_CACHE_SIZE,
+    DEFAULT_CACHED_IMAGE_RES,
     Splash,
     Theme,
 )
@@ -171,6 +172,23 @@ class SettingsPanel(PanelWidget):
             Translations["settings.thumb_cache_size.label"], self.thumb_cache_size_container
         )
 
+        # Thumbnail resolution (thumbnail draw size is Max 352 min 128)
+        self.thumb_resolution_container = QWidget()
+        self.thumb_resolution_layout = QHBoxLayout(self.thumb_resolution_container)
+        self.thumb_resolution_layout.setContentsMargins(0, 0, 0, 0)
+        self.thumb_resolution_layout.setSpacing(6)
+        self.thumb_resolution = QLineEdit()
+        self.thumb_resolution.setAlignment(Qt.AlignmentFlag.AlignRight)
+        self.thumb_resolution.setText(
+            str(self.driver.settings.cached_thumb_resolution)
+        )
+        self.thumb_resolution_layout.addWidget(self.thumb_resolution)
+        self.thumb_resolution_layout.setStretch(1, 2)
+        self.thumb_resolution_layout.addWidget(QLabel("px"))
+        form_layout.addRow(
+            "thumb_resolution", self.thumb_resolution_container
+        )
+
         # Autoplay
         self.autoplay_checkbox = QCheckBox()
         self.autoplay_checkbox.setChecked(self.driver.settings.autoplay)
@@ -290,10 +308,12 @@ class SettingsPanel(PanelWidget):
             "language": self.__get_language(),
             "open_last_loaded_on_startup": self.open_last_lib_checkbox.isChecked(),
             "generate_thumbs": self.generate_thumbs.isChecked(),
+            
             "thumb_cache_size": max(
                 float(self.thumb_cache_size.text()) or DEFAULT_THUMB_CACHE_SIZE,
                 MIN_THUMB_CACHE_SIZE,
             ),
+            "thumb_resolution": self.thumb_resolution.text() or DEFAULT_CACHED_IMAGE_RES,
             "autoplay": self.autoplay_checkbox.isChecked(),
             "show_filenames_in_grid": self.show_filenames_checkbox.isChecked(),
             "page_size": int(self.page_size_line_edit.text()),
@@ -315,6 +335,7 @@ class SettingsPanel(PanelWidget):
         driver.settings.autoplay = settings["autoplay"]
         driver.settings.generate_thumbs = settings["generate_thumbs"]
         driver.settings.thumb_cache_size = settings["thumb_cache_size"]
+        driver.settings.cached_thumb_resolution = settings["thumb_resolution"]
         driver.settings.show_filenames_in_grid = settings["show_filenames_in_grid"]
         driver.settings.page_size = settings["page_size"]
         driver.settings.infinite_scroll = settings["infinite_scroll"]
