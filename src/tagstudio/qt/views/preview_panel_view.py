@@ -172,6 +172,16 @@ class PreviewPanelView(QWidget):
             elif len(selected) > 1:
                 # items: list[Entry] = [self.lib.get_entry_full(x) for x in self.driver.selected]
                 self.__thumb.hide_preview()  # TODO: Render mixed selection
+
+                #LOUIS render last selected
+                entry_id = selected[len(selected)-1]
+                entry: Entry = unwrap(self.lib.get_entry(entry_id))
+
+                filepath: Path = unwrap(self.lib.library_dir) / entry.path
+
+                if update_preview:
+                    stats: FileAttributeData = self.__thumb.display_file(filepath)
+
                 self.__file_attrs.update_multi_selection(len(selected))
                 self.__file_attrs.update_date_label()
                 self._fields.hide_containers()  # TODO: Allow for mixed editing
