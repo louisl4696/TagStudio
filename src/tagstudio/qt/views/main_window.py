@@ -217,8 +217,9 @@ class MainMenuBar(QMenuBar):
         self.select_inverse_action.setEnabled(False)
         self.edit_menu.addAction(self.select_inverse_action)
 
+        # Undo Selection
         self.undo_selection_action = QAction(
-            Translations["menu.view.undo_selection"], self
+            Translations["select.undo"], self
         )
         self.undo_selection_action.setShortcut(
             QtCore.QKeyCombination(
@@ -228,8 +229,9 @@ class MainMenuBar(QMenuBar):
         self.undo_selection_action.setToolTip("R")
         self.edit_menu.addAction(self.undo_selection_action)
 
+        # Redo Selection
         self.redo_selection_action = QAction(
-            Translations["menu.view.redo_selection"], self
+            Translations["select.redo"], self
         )
         self.redo_selection_action.setShortcut(
             QtCore.QKeyCombination(
@@ -715,15 +717,19 @@ class MainWindow(QMainWindow):
 
     # endregion
 
-    #keyboard navigation
-
+    #keyboard navigation of thumb_layout
     def eventFilter(self, watched, event):
         if isinstance(event, QKeyEvent):
             key = event.key()
-            # KEY PRESSED
+            # KEY RELEASED
             if event.type() == event.Type.KeyRelease:
-                logger.info("Key UP", key=key)
-                if key == QtCore.Qt.Key.Key_Right:
+                if key == QtCore.Qt.Key.Key_Shift:
+                    self.thumb_layout.handle_shift_key_event(is_shift_key_pressed=False)
+            # KEY PRESSED
+            else:
+                if key == QtCore.Qt.Key.Key_Shift:
+                    self.thumb_layout.handle_shift_key_event(is_shift_key_pressed=True)
+                elif key == QtCore.Qt.Key.Key_Right:
                     selected = self.thumb_layout.select_next()
                     self.preview_panel.set_selection(selected, update_preview=True)
                     return True
@@ -731,9 +737,14 @@ class MainWindow(QMainWindow):
                     selected = self.thumb_layout.select_prev()
                     self.preview_panel.set_selection(selected, update_preview=True)
                     return True
-            # KEY RELEASED
-            else:
-                logger.info("Key DOWN", key=key)
+                elif key == QtCore.Qt.Key.Key_Up:
+                    selected = self.thumb_layout.select_up()
+                    self.preview_panel.set_selection(selected, update_preview=True)
+                    return True
+                elif key == QtCore.Qt.Key.Key_Down:
+                    selected = self.thumb_layout.select_down()
+                    self.preview_panel.set_selection(selected, update_preview=True)
+                    return True
         return super().eventFilter(watched, event)
     
 

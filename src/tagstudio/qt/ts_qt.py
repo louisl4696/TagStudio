@@ -861,14 +861,14 @@ class QtDriver(DriverMixin, QObject):
         self.lib.add_tags_to_entries(selected, tag_ids)
 
     def undo_selection_action_callback(self):
-        """Undo most recent selection change"""
+        """Undo most recent selection change."""
         self.main_window.thumb_layout.undo_selection()
         self.set_clipboard_menu_viability()
         self.set_select_actions_visibility()
         self.main_window.preview_panel.set_selection(self.selected, update_preview=True)
 
     def redo_selection_action_callback(self):
-        """redo most recent selection undo"""
+        """Redo most recent selection undo."""
         self.main_window.thumb_layout.redo_selection()
         self.set_clipboard_menu_viability()
         self.set_select_actions_visibility()
